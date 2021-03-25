@@ -1,7 +1,7 @@
 import paddle.nn as nn
-from paddle.fluid.layers import elementwise_div as div,reshape
 from paddle import fluid
-import paddle as torch
+from paddle.fluid.layers import elementwise_div as div, reshape
+
 
 class BasicBlock(nn.Layer):
     def __init__(self, c_in, c_out, is_downsample=False):
@@ -88,7 +88,7 @@ class Net(nn.Layer):
         x = self.layer3(x)
         x = self.layer4(x)
         x = self.avgpool(x)
-        x = reshape(x,(x.shape[0],-1))#x.view(x.size(0), -1)
+        x = reshape(x, (x.shape[0], -1))  # x.view(x.size(0), -1)
         # B x 128
         if self.reid:
             x = div(x, x.norm(p=2, dim=1, keepdim=True))

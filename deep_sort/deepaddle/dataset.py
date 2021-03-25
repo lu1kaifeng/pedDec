@@ -1,16 +1,17 @@
-#from typing import Optional, Union
+# from typing import Optional, Union
 
-#import joblib
-#import pytorch_lightning as pl
-from pathlib2 import Path
-from PIL import Image
-import paddle
-from paddle.io import DataLoader, Dataset
 import numpy as np
-#from torch.utils.data.dataset import Subset
-#from torchvision import transforms
+from PIL import Image
+from paddle.io import Dataset
+# import joblib
+# import pytorch_lightning as pl
+from pathlib2 import Path
 
-#from metrics import smooth_st_distribution
+
+# from torch.utils.data.dataset import Subset
+# from torchvision import transforms
+
+# from metrics import smooth_st_distribution
 def get_ids(img_paths: list, dataset: str) -> tuple:
     camera_ids = []
     labels = []
@@ -52,7 +53,6 @@ def get_ids(img_paths: list, dataset: str) -> tuple:
         frames.append(frame)
     # (list, list, list)
     return camera_ids, labels, frames
-
 
 
 class ReIDDataset(Dataset):
@@ -120,7 +120,6 @@ class ReIDDataset(Dataset):
     def __len__(self):
         return len(self.imgs)
 
-
     def __getitem__(self, index):
         sample = Image.open(str(self.imgs[index])).convert('RGB')
         target = self.targets[index]
@@ -135,8 +134,7 @@ class ReIDDataset(Dataset):
             frame = self.frames[index]
             return sample, target, cam_id, frame
 
-        return sample , np.array([target],dtype=np.int64) #target#np.eye(len(self.classes), dtype='float32')[target]
-
+        return sample, np.array([target], dtype=np.int64)  # target#np.eye(len(self.classes), dtype='float32')[target]
 
 # class ReIDDataModule(pl.LightningDataModule):
 #

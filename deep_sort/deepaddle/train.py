@@ -4,23 +4,21 @@ import time
 
 import matplotlib.pyplot as plt
 import paddle as torch
+import paddle.vision as torchvision
+from paddle.fluid.reader import DataLoader
 from paddle.optimizer.lr import StepDecay
-import torch.backends.cudnn as cudnn
 from paddle.static import InputSpec
 
 from deep_sort.deepaddle.dataset import ReIDDataset
-from paddle.fluid.reader import DataLoader
-import paddle.vision as torchvision
-from paddle import fluid
 from deep_sort.deepaddle.model import Net
 
 parser = argparse.ArgumentParser(description="Train on market1501")
-parser.add_argument("--data-dir",default='./data/archive/Market-1501-v15.09.15',type=str)
-parser.add_argument("--no-cuda",action="store_true")
-parser.add_argument("--gpu-id",default=0,type=int)
-parser.add_argument("--lr",default=0.1, type=float)
-parser.add_argument("--interval",'-i',default=20,type=int)
-parser.add_argument('--resume', '-r',action='store_true')
+parser.add_argument("--data-dir", default='./data/archive/Market-1501-v15.09.15', type=str)
+parser.add_argument("--no-cuda", action="store_true")
+parser.add_argument("--gpu-id", default=0, type=int)
+parser.add_argument("--lr", default=0.1, type=float)
+parser.add_argument("--interval", '-i', default=20, type=int)
+parser.add_argument('--resume', '-r', action='store_true')
 args = parser.parse_args()
 
 # device
@@ -28,26 +26,26 @@ device = "cuda:{}".format(args.gpu_id) if not args.no_cuda else "cpu"
 
 # data loading
 root = args.data_dir
-train_dir = os.path.join(root,"bounding_box_train")
-test_dir = os.path.join(root,"bounding_box_test")
+train_dir = os.path.join(root, "bounding_box_train")
+test_dir = os.path.join(root, "bounding_box_test")
 transform_train = torchvision.transforms.Compose([
-    torchvision.transforms.RandomCrop((128,64),padding=4),
+    torchvision.transforms.RandomCrop((128, 64), padding=4),
     torchvision.transforms.RandomHorizontalFlip(),
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 transform_test = torchvision.transforms.Compose([
-    torchvision.transforms.Resize((128,64)),
+    torchvision.transforms.Resize((128, 64)),
     torchvision.transforms.ToTensor(),
     torchvision.transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 trainloader = DataLoader(
     ReIDDataset(train_dir, transform=transform_train),
-    batch_size=64,shuffle=True
+    batch_size=64, shuffle=True
 )
 testloader = DataLoader(
     ReIDDataset(test_dir, transform=transform_test),
-    batch_size=64,shuffle=True
+    batch_size=64, shuffle=True
 )
 num_classes = max(len(trainloader.dataset.classes), len(testloader.dataset.classes))
 
@@ -68,13 +66,15 @@ if args.resume:
 criterion = torch.nn.CrossEntropyLoss()
 
 sch = StepDecay(learning_rate=args.lr, step_size=20, verbose=1, gamma=0.100)
-optimizer = torch.optimizer.SGD(parameters=net.parameters(), learning_rate=sch,  weight_decay=5e-4)
+optimizer = torch.optimizer.SGD(parameters=net.parameters(), learning_rate=sch, weight_decay=5e-4)
 best_acc = 0.
 metric = torch.metric.Accuracy()
+
+
 # train function for each epoch
 def train(epoch):
     metric.reset()
-    print("\nEpoch : %d"%(epoch+1))
+    print("\nEpoch : %d" % (epoch + 1))
     net.train()
     training_loss = 0.
     train_loss = 0.
@@ -84,33 +84,35 @@ def train(epoch):
     start = time.time()
     for idx, (inputs, labels) in enumerate(trainloader):
         # forward
-        inputs,labels = inputs,labels
+        inputs, labels = inputs, labels
         outputs = net(inputs)
         loss = criterion(outputs, labels)
 
         # backward
-        optimizer.clear_grad()#zero_grad()
+        optimizer.clear_grad()  # zero_grad()
         loss.backward()
         optimizer.step()
-        cc = metric.compute(outputs,labels)
+        cc = metric.compute(outputs, labels)
         metric.update(cc)
         res = metric.accumulate()
         # accumurating
         training_loss += loss.numpy().item()
         train_loss += loss.numpy().item()
-        correct += 0#fluid.layers.equal(outputs.max(axis=1)[1],torch.cast(labels,'float32')).sum().numpy().item()
-        total += 1#labels.size(0)
+        correct += 0  # fluid.layers.equal(outputs.max(axis=1)[1],torch.cast(labels,'float32')).sum().numpy().item()
+        total += 1  # labels.size(0)
 
         # print 
-        if (idx+1)%interval == 0:
+        if (idx + 1) % interval == 0:
             end = time.time()
             print("[progress:{:.1f}%]time:{:.2f}s Loss:{:.5f} Correct:{}/{} Acc:{:.3f}".format(
-                100.*(idx+1)/len(trainloader), end-start, training_loss/interval, correct, total, res
+                100. * (idx + 1) / len(trainloader), end - start, training_loss / interval, correct, total, res
             ))
             training_loss = 0.
             start = time.time()
 
-    return train_loss/len(trainloader), 1.- correct/total
+    return train_loss / len(trainloader), 1. - correct / total
+
+
 @torch.no_grad()
 def test(epoch):
     metric.reset()
@@ -128,28 +130,31 @@ def test(epoch):
         metric.update(cc)
         res = metric.accumulate()
         test_loss += loss.numpy().item()
-        correct += 0#outputs.max(dim=1)[1].eq(labels).sum().numpy().item()
-        total += 1#labels.size(0)
+        correct += 0  # outputs.max(dim=1)[1].eq(labels).sum().numpy().item()
+        total += 1  # labels.size(0)
 
     print("Testing ...")
     end = time.time()
     print("[progress:{:.1f}%]time:{:.2f}s Loss:{:.5f} Correct:{}/{} Acc:{:.3f}".format(
-            100.*(idx+1)/len(testloader), end-start, test_loss/len(testloader), correct, total, res
-        ))
+        100. * (idx + 1) / len(testloader), end - start, test_loss / len(testloader), correct, total, res
+    ))
 
     print("Saving parameters to checkpoint/ckpt.t7")
     if not os.path.isdir('checkpoint'):
         os.mkdir('checkpoint')
-    torch.jit.save(net, './checkpoint/net',input_spec=[InputSpec(shape=[1,3,128,64], dtype='float32')])
+    torch.jit.save(net, './checkpoint/net', input_spec=[InputSpec(shape=[1, 3, 128, 64], dtype='float32')])
 
-    return test_loss/len(testloader), 1.- correct/total
+    return test_loss / len(testloader), 1. - correct / total
+
 
 # plot figure
 x_epoch = []
-record = {'train_loss':[], 'train_err':[], 'test_loss':[], 'test_err':[]}
+record = {'train_loss': [], 'train_err': [], 'test_loss': [], 'test_err': []}
 fig = plt.figure()
 ax0 = fig.add_subplot(121, title="loss")
 ax1 = fig.add_subplot(122, title="top1err")
+
+
 def draw_curve(epoch, train_loss, train_err, test_loss, test_err):
     global record
     record['train_loss'].append(train_loss)
@@ -167,6 +172,7 @@ def draw_curve(epoch, train_loss, train_err, test_loss, test_err):
         ax1.legend()
     fig.savefig("train.jpg")
 
+
 # lr decay
 def lr_decay():
     global optimizer
@@ -175,8 +181,9 @@ def lr_decay():
         lr = params['lr']
         print("Learning rate adjusted to {}".format(lr))
 
+
 def main():
-    for epoch in range(start_epoch, start_epoch+40):
+    for epoch in range(start_epoch, start_epoch + 40):
         train_loss, train_err = train(epoch)
         test_loss, test_err = test(epoch)
         draw_curve(epoch, train_loss, train_err, test_loss, test_err)

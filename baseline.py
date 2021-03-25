@@ -1,7 +1,9 @@
 base = './data/'
 import os
+
 import paddlex as pdx
 from paddlex.det import transforms
+
 train_transforms = transforms.Compose([
     transforms.MixupImage(mixup_epoch=250),
     transforms.RandomDistort(),

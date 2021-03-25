@@ -1,5 +1,6 @@
 base = './data/'
 import os
+
 import paddlex as pdx
 from paddlex.det import transforms
 
@@ -13,7 +14,7 @@ train_transforms = transforms.Compose([
 eval_transforms = transforms.Compose([
     transforms.Normalize(),
     transforms.ResizeByShort(short_size=800, max_size=1333),
-    transforms.Padding(coarsest_stride=32),])
+    transforms.Padding(coarsest_stride=32), ])
 train_dataset = pdx.datasets.VOCDetection(
     data_dir=base,
     file_list=os.path.join(base, 'train.txt'),
@@ -38,5 +39,5 @@ model.train(
     save_interval_epochs=18,
     eval_dataset=eval_dataset,
     learning_rate=0.0025,
-    lr_decay_epochs=[8, 11,13,15,17],
-    save_dir='./FasterRCNN',resume_checkpoint='./FasterRCNN/epoch_12')
+    lr_decay_epochs=[8, 11, 13, 15, 17],
+    save_dir='./FasterRCNN', resume_checkpoint='./FasterRCNN/epoch_12')

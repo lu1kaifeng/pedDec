@@ -1,37 +1,36 @@
-import cv2
-import os
-import numpy as np
-import time
 import argparse
-import shutil
 import codecs
+import os
+import shutil
+
+import numpy as np
 import progressbar
 
 train_17 = ['MOT17-Det/train/MOT17-02/',
-                'MOT17-Det/train/MOT17-04/',
-                'MOT17-Det/train/MOT17-05/',
-                'MOT17-Det/train/MOT17-09/',
-                'MOT17-Det/train/MOT17-10/',
-                'MOT17-Det/train/MOT17-11/',
-                'MOT17-Det/train/MOT17-13/']
+            'MOT17-Det/train/MOT17-04/',
+            'MOT17-Det/train/MOT17-05/',
+            'MOT17-Det/train/MOT17-09/',
+            'MOT17-Det/train/MOT17-10/',
+            'MOT17-Det/train/MOT17-11/',
+            'MOT17-Det/train/MOT17-13/']
 
 test_17 = ['MOT17-Det/test/MOT17-01/',
-               'MOT17-Det/test/MOT17-03/',
-               'MOT17-Det/test/MOT17-06/',
-               'MOT17-Det/test/MOT17-07/',
-               'MOT17-Det/test/MOT17-08/',
-               'MOT17-Det/test/MOT17-12/',
-               'MOT17-Det/test/MOT17-14/']
+           'MOT17-Det/test/MOT17-03/',
+           'MOT17-Det/test/MOT17-06/',
+           'MOT17-Det/test/MOT17-07/',
+           'MOT17-Det/test/MOT17-08/',
+           'MOT17-Det/test/MOT17-12/',
+           'MOT17-Det/test/MOT17-14/']
 
 train_20 = ['data/MOT20/train/MOT20-01/',
-                'data/MOT20/train/MOT20-02/',
-                'data/MOT20/train/MOT20-03/',
-                'data/MOT20/train/MOT20-05/']
+            'data/MOT20/train/MOT20-02/',
+            'data/MOT20/train/MOT20-03/',
+            'data/MOT20/train/MOT20-05/']
 
 test_20 = ['data/MOT20/test/MOT20-04/',
-               'data/MOT20/test/MOT20-06/',
-               'data/MOT20/test/MOT20-07/',
-               'data/MOT20/test/MOT20-08/']
+           'data/MOT20/test/MOT20-06/',
+           'data/MOT20/test/MOT20-07/',
+           'data/MOT20/test/MOT20-08/']
 
 
 def parse_args():
@@ -44,14 +43,17 @@ def parse_args():
     args = parser.parse_args()
     return args
 
+
 def parse_ini(dir):
-    ini_fp = open(dir + 'seqinfo.ini','r')
+    ini_fp = open(dir + 'seqinfo.ini', 'r')
     seq_info = ini_fp.readlines()
     seqLenth = int(seq_info[4][10:])
     imWidth = int(seq_info[5][8:])
     imHeight = int(seq_info[6][9:])
-    return seqLenth,imWidth,imHeight
-def gennerate_gt(gt,Annotation,frame,filename,width,height):
+    return seqLenth, imWidth, imHeight
+
+
+def gennerate_gt(gt, Annotation, frame, filename, width, height):
     fp_gt = open(gt)
     gt_lines = fp_gt.readlines()
 
@@ -63,7 +65,6 @@ def gennerate_gt(gt,Annotation,frame,filename,width,height):
             label_class = line.split(',')[7]
             if (label_class == '1' or label_class == '2' or label_class == '7') and visible > 0.3:
                 gt_fram.append(line)
-
 
     with codecs.open(Annotation + filename + '.xml', 'w') as xml:
         xml.write('<?xml version="1.0" encoding="UTF-8"?>\n')
@@ -100,37 +101,36 @@ def gennerate_gt(gt,Annotation,frame,filename,width,height):
             xml.write('\t</object>\n')
         xml.write('</annotation>')
 
-#用于校验图片数量和标注数量是否一致
-def check_num(data_dir, JPEGImage_dir,Annotations_dir=None,ori_num = 0):
+
+# 用于校验图片数量和标注数量是否一致
+def check_num(data_dir, JPEGImage_dir, Annotations_dir=None, ori_num=0):
     num = 0
     for folder in data_dir:
-        folder_len,_,_ = parse_ini(folder)
+        folder_len, _, _ = parse_ini(folder)
         num += folder_len
     img_list = os.listdir(JPEGImage_dir)
-    if ori_num==0:
+    if ori_num == 0:
         img_num = len(img_list)
     else:
-        img_num = len(img_list)-ori_num
+        img_num = len(img_list) - ori_num
     # print('img_num:',img_num)
     if Annotations_dir:
         ann_list = os.listdir(Annotations_dir)
         ann_num = len(ann_list)
         assert ann_num == num
-    assert img_num == num,'if it is the second time run this demo, please delete the JPEGImages folder and retry'
+    assert img_num == num, 'if it is the second time run this demo, please delete the JPEGImages folder and retry'
     # print('num:', num)
     print('folders {} have been succeed checked'.format(data_dir))
     return num
 
 
-
-def segment_dataset(ImageSets,Main,thr1 = 0.8,thr2 = 0.9):
+def segment_dataset(ImageSets, Main, thr1=0.8, thr2=0.9):
     fp_all = open(ImageSets + 'train_all.txt', 'r')
     fp_train = open(Main + 'train.txt', 'w')
     fp_test = open(Main + 'test.txt', 'w')
     fp_val = open(Main + 'valid.txt', 'w')
     train_list = fp_all.readlines()
     print(len(train_list))
-
 
     for line in train_list:
         rand_a = np.random.rand(1)
@@ -158,8 +158,8 @@ def main():
         test_dirs = test_20
 
     motyear = args.year
-    folder = 'data/'+'MOT' + motyear + 'Det'+'/VOCdevkit/'
-    Annotations = folder+'Annotations/'
+    folder = 'data/' + 'MOT' + motyear + 'Det' + '/VOCdevkit/'
+    Annotations = folder + 'Annotations/'
     ImageSets = folder + 'ImageSets/'
     JPEGImages = folder + 'JPEGImages/'
     Main = ImageSets + 'Main/'
@@ -171,7 +171,6 @@ def main():
         os.makedirs(JPEGImages)
     if not os.path.exists(Main):
         os.makedirs(Main)
-
 
     fp_txt = open(ImageSets + 'train_all.txt', 'w')
     fp_test = open(ImageSets + 'test_all.txt', 'w')
@@ -194,19 +193,19 @@ def main():
             shutil.copy(img1 + img, JPEGImages + '/' + format_name)  # 将文件移动到指定文件夹并重新命名
             frame = int(img[:-4])
             gennerate_gt(gt, Annotation=Annotations, frame=frame, filename=format_name[:-4], width=imWidth,
-                      height=imHeight)   #生成标注文件
+                         height=imHeight)  # 生成标注文件
         bar.finish()
     fp_txt.close()
-    
-    train_num = check_num(train_dirs,JPEGImages,Annotations)
+
+    train_num = check_num(train_dirs, JPEGImages, Annotations)
 
     for test_ in test_dirs:
         img2 = test_ + 'img1/'
         folder_id = test_[-3:-1]
         test_list = os.listdir(img2)
-        test_seqLen,_,_ = parse_ini(test_)
+        test_seqLen, _, _ = parse_ini(test_)
 
-        assert test_seqLen==len(test_list)
+        assert test_seqLen == len(test_list)
 
         bar = progressbar.ProgressBar(maxval=len(test_list)).start()
         count = 0
@@ -221,9 +220,9 @@ def main():
 
     fp_test.close()
 
-    check_num(test_dirs, JPEGImages, Annotations_dir=None,ori_num=train_num)    # 校验核对处理后的数据集的数据是否正确
+    check_num(test_dirs, JPEGImages, Annotations_dir=None, ori_num=train_num)  # 校验核对处理后的数据集的数据是否正确
 
-    segment_dataset(ImageSets,Main)
+    segment_dataset(ImageSets, Main)
 
 
 if __name__ == '__main__':
