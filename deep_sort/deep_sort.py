@@ -1,7 +1,6 @@
 import numpy as np
-import torch
 import cv2
-from .deep.feature_extractor import Extractor
+from .deepaddle.jit_feature_extractor import Extractor
 from .sort.nn_matching import NearestNeighborDistanceMetric
 from .sort.preprocessing import non_max_suppression
 from .sort.detection import Detection

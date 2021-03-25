@@ -1,12 +1,14 @@
 import cv2
 import time
 import numpy as np
+import paddle
 import matplotlib.pyplot as plt
 
 from deep_sort import DeepSort
 
 base = './data/'
 import os
+sort = DeepSort('checkpoint/net',n_init=2)
 import paddlex as pdx
 from paddlex.det import transforms
 eval_transforms = transforms.Compose([
@@ -18,15 +20,16 @@ eval_dataset = pdx.datasets.VOCDetection(
     file_list=os.path.join(base, 'valid.txt'),
     transforms=eval_transforms,
     label_list='./data/labels.txt')
+
 model = pdx.load_model('./YOLOv3/best_model')
-sort = DeepSort('deep_sort/deep/checkpoint/ckpt.t7',n_init=2)
+
 for i in eval_dataset.file_list:
     image_name = i[0]
     start = time.time()
     result = model.predict(image_name)
     #print('infer time:{:.6f}s'.format(time.time()-start))
     #print('detected num:', len(result))
-
+    paddle.disable_static()
     im = cv2.imread(image_name)
     font = cv2.FONT_HERSHEY_SIMPLEX
     threshold = 0.2
@@ -48,6 +51,7 @@ for i in eval_dataset.file_list:
                         (x, y), font, 0.5, (255, 0, 0), thickness=2)
 
     cv2.imshow('result', im)
+    paddle.enable_static()
     cv2.waitKey(0)
     # plt.figure(figsize=(15,12))
     # plt.imshow(im[:, :, [2,1,0]])
