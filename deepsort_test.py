@@ -3,13 +3,13 @@ import time
 import cv2
 import numpy as np
 import paddle
-
+from tqdm import  tqdm
 from deep_sort import DeepSort
-
+sort = DeepSort('checkpoint/net', n_init=2)
 base = './data/'
 import os
 
-sort = DeepSort('checkpoint/net', n_init=2)
+
 import paddlex as pdx
 from paddlex.det import transforms
 
@@ -25,7 +25,7 @@ eval_dataset = pdx.datasets.VOCDetection(
 
 model = pdx.load_model('./YOLOv3/best_model')
 
-for i in eval_dataset.file_list:
+for i in tqdm(eval_dataset.file_list):
     image_name = i[0]
     start = time.time()
     result = model.predict(image_name)
@@ -52,9 +52,9 @@ for i in eval_dataset.file_list:
         cv2.putText(im, '{:d} {:d}'.format(track, track),
                     (x, y), font, 0.5, (255, 0, 0), thickness=2)
 
-    cv2.imshow('result', im)
+    #cv2.imshow('result', im)
     paddle.enable_static()
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
     # plt.figure(figsize=(15,12))
     # plt.imshow(im[:, :, [2,1,0]])
     # plt.show()

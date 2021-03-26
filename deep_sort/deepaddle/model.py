@@ -91,7 +91,7 @@ class Net(nn.Layer):
         x = reshape(x, (x.shape[0], -1))  # x.view(x.size(0), -1)
         # B x 128
         if self.reid:
-            x = div(x, x.norm(p=2, dim=1, keepdim=True))
+            x = div(x, x.norm(p=2, axis=1, keepdim=True))
             return x
         # classifier
         x = self.classifier(x)

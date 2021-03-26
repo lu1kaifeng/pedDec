@@ -3,13 +3,20 @@ import logging
 import cv2
 import numpy as np
 import paddle as torch
+import paddle
 import paddle.vision.transforms as transforms
 from paddle import fluid
 
 
 class Extractor(object):
-    def __init__(self, model_path, use_cuda=True):
-        self.net = loaded_layer = torch.jit.load(model_path)
+    def __init__(self, model_path, use_cuda=True,use_static=False):
+        self.use_static = use_static
+        if not use_static:
+            self.net = torch.jit.load(model_path)
+        else:
+            place = paddle.CUDAPlace(0)
+            self.exe = paddle.static.Executor(place)
+            self.static_model = paddle.static.load_inference_model(model_path, self.exe)
         logger = logging.getLogger("root.tracker")
         logger.info("Loading weights from {}... Done!".format(model_path))
         # self.net.to(self.device)
@@ -38,12 +45,22 @@ class Extractor(object):
 
     @torch.no_grad()
     def __call__(self, im_crops):
-        im_batch = self._preprocess(im_crops)
-        # im_batch = im_batch.to(self.device)
-        features = []  # self.net(im_batch)
-        for f in im_batch:
-            features.append(torch.squeeze(self.net(torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0))))
-        return torch.stack(features, axis=0).numpy()
+        if self.use_static:
+            program, feed_vars, fetch_vars = self.static_model
+            im_batch = self._preprocess(im_crops)
+            # im_batch = im_batch.to(self.device)
+            features = []  # self.net(im_batch)
+            for f in im_batch:
+                fetch, = self.exe.run(program, feed={feed_vars[0]: torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0)}, fetch_list=fetch_vars)
+                features.append(fetch)
+            return np.stack(features,axis=0)
+        else:
+            im_batch = self._preprocess(im_crops)
+            # im_batch = im_batch.to(self.device)
+            features = []  # self.net(im_batch)
+            for f in im_batch:
+                features.append(torch.squeeze(self.net(torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0))))
+            return torch.stack(features, axis=0).numpy()
 
 
 if __name__ == '__main__':
