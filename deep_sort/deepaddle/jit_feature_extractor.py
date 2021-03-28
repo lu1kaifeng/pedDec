@@ -2,14 +2,14 @@ import logging
 
 import cv2
 import numpy as np
-import paddle as torch
 import paddle
+import paddle as torch
 import paddle.vision.transforms as transforms
 from paddle import fluid
 
 
 class Extractor(object):
-    def __init__(self, model_path, use_cuda=True,use_static=False):
+    def __init__(self, model_path, use_cuda=True, use_static=False):
         self.use_static = use_static
         if not use_static:
             self.net = torch.jit.load(model_path)
@@ -51,9 +51,10 @@ class Extractor(object):
             # im_batch = im_batch.to(self.device)
             features = []  # self.net(im_batch)
             for f in im_batch:
-                fetch, = self.exe.run(program, feed={feed_vars[0]: torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0)}, fetch_list=fetch_vars)
+                fetch, = self.exe.run(program, feed={feed_vars[0]: torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0)},
+                                      fetch_list=fetch_vars)
                 features.append(fetch)
-            return np.stack(features,axis=0)
+            return np.stack(features, axis=0)
         else:
             im_batch = self._preprocess(im_crops)
             # im_batch = im_batch.to(self.device)
