@@ -45,23 +45,16 @@ class Extractor(object):
 
     @torch.no_grad()
     def __call__(self, im_crops):
-        if self.use_static:
-            program, feed_vars, fetch_vars = self.static_model
-            im_batch = self._preprocess(im_crops)
-            # im_batch = im_batch.to(self.device)
-            features = []  # self.net(im_batch)
-            for f in im_batch:
-                fetch, = self.exe.run(program, feed={feed_vars[0]: torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0)},
-                                      fetch_list=fetch_vars)
-                features.append(fetch)
-            return np.stack(features, axis=0)
-        else:
+        paddle.disable_static()
+        try:
             im_batch = self._preprocess(im_crops)
             # im_batch = im_batch.to(self.device)
             features = []  # self.net(im_batch)
             for f in im_batch:
                 features.append(torch.squeeze(self.net(torch.unsqueeze(np.moveaxis(f, -1, 0), axis=0))))
             return torch.stack(features, axis=0).numpy()
+        finally:
+            paddle.enable_static()
 
 
 if __name__ == '__main__':
