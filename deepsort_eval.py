@@ -15,12 +15,20 @@ import paddlex as pdx
 from paddlex.det import transforms
 INTERACTIVE=False
 WRITE_CSV=True
-eval_transforms = transforms.Compose([
-    transforms.Resize(target_size=512, interp='CUBIC'),
-    transforms.Normalize(),
-])
+USE_YOLO=False
+if USE_YOLO:
+    eval_transforms = transforms.Compose([
+        transforms.Resize(target_size=512, interp='CUBIC'),
+        transforms.Normalize(),
+    ])
 
-model = pdx.load_model('./YOLOv3/best_model')
+    model = pdx.load_model('./YOLOv3/best_model')
+else:
+    eval_transforms = transforms.Compose([
+        transforms.Normalize(),
+        transforms.ResizeByShort(short_size=800, max_size=1333),
+        transforms.Padding(coarsest_stride=32), ])
+    model = pdx.load_model('./FasterRCNN/best_model')
 evaluator = CsvEvalWriter()
 loop_gen = ( ( pdx.datasets.VOCDetection(
     data_dir=base,
