@@ -181,7 +181,7 @@ def main():
         gt = train_ + 'gt/gt.txt'
         folder_id = train_[-3:-1]
         img_list = os.listdir(img1)
-
+        list_txt = open(train_ + 'list.txt', 'w')
         count = 0
         assert len(img_list) == seqLenth
         bar = progressbar.ProgressBar(maxval=len(img_list)).start()
@@ -190,11 +190,13 @@ def main():
             bar.update(count)
             format_name = folder_id + img
             fp_txt.writelines(format_name[:-4] + '\n')  # 将生成的新的文件名写入train_all.txt，用于后续数据集拆分
+            list_txt.writelines(format_name[:-4] + '\n')
             shutil.copy(img1 + img, JPEGImages + '/' + format_name)  # 将文件移动到指定文件夹并重新命名
             frame = int(img[:-4])
             gennerate_gt(gt, Annotation=Annotations, frame=frame, filename=format_name[:-4], width=imWidth,
                          height=imHeight)  # 生成标注文件
         bar.finish()
+        list_txt.close()
     fp_txt.close()
 
     train_num = check_num(train_dirs, JPEGImages, Annotations)
@@ -204,7 +206,7 @@ def main():
         folder_id = test_[-3:-1]
         test_list = os.listdir(img2)
         test_seqLen, _, _ = parse_ini(test_)
-
+        list_txt = open(test_ + 'list.txt', 'w')
         assert test_seqLen == len(test_list)
 
         bar = progressbar.ProgressBar(maxval=len(test_list)).start()
@@ -214,9 +216,11 @@ def main():
             count += 1
             bar.update(count)
             format_name = folder_id + img
-            fp_test.writelines(format_name[:-4] + '\n')  # 将生成的新的文件名写入train_all.txt，用于后续数据集拆分
+            fp_test.writelines(format_name[:-4] + '\n')
+            list_txt.writelines(format_name[:-4] + '\n')# 将生成的新的文件名写入train_all.txt，用于后续数据集拆分
             shutil.copy(img2 + img, JPEGImages + '/' + format_name)  # 将文件移动到指定文件夹并重新命名
         bar.finish()
+        list_txt.close()
 
     fp_test.close()
 
