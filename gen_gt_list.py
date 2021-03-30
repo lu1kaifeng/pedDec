@@ -48,7 +48,7 @@ def gennerate_gt(gt, Annotation, frame, filename, width, height):
         xml.write('</annotation>')
 
 import os
-folder = 'data/MOT20/train/MOT20-02/'
+folder = 'data/MOT20/train/MOT20-05/'
 imgs = []
 fp_gt = open(folder+'gt/gt.txt')
 gt_lines = fp_gt.readlines()
@@ -56,7 +56,7 @@ entries = []
 for (dirpath, dirnames, filenames) in os.walk(folder+'img1'):
     imgs.extend(filenames)
 for i in imgs:
-    gennerate_gt(gt_lines,folder+'/ann/',int(i[:-4]),i[:-4],19dsad20,10dds80)
+    gennerate_gt(gt_lines,folder+'/ann/',int(i[:-4]),i[:-4],1654,1080)
     entries.append(folder+'img1/'+i+' '+folder+'ann/' + i[:-4] + '.xml\n')
 
 with open(folder+'manifest.txt','w') as f:

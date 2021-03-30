@@ -1,7 +1,7 @@
 import csv as penis
 class CsvEvalWriter:
     def __init__(self):
-        self.frame = 0
+        self.frame = 1
         self.rows = []
 
     def write_target(self, id, left, top, width, height, conf):
@@ -22,7 +22,7 @@ class CsvEvalWriter:
         self.frame+=1
 
     def dump_to_file(self,p):
-        with open(p,'w') as f:
+        with open(p,'w', newline='', encoding='utf-8') as f:
             csv_writer = penis.DictWriter(f,[ 'frame',
             'id',
             'bb_left',
@@ -34,3 +34,4 @@ class CsvEvalWriter:
             'y',
             'z'])
             csv_writer.writerows(self.rows)
+        self.rows = []
