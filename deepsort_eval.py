@@ -13,8 +13,8 @@ import os
 
 import paddlex as pdx
 from paddlex.det import transforms
-INTERACTIVE=True
-WRITE_CSV=False
+INTERACTIVE=False
+WRITE_CSV=True
 USE_YOLO=False
 if USE_YOLO:
     eval_transforms = transforms.Compose([
@@ -34,10 +34,12 @@ loop_gen = ( ( pdx.datasets.VOCDetection(
     data_dir=base,
     file_list=k,
     transforms=eval_transforms,
-    label_list='./data/labels.txt'),v) for k,v in [('data/MOT20/train/MOT20-01/manifest.txt','MOT20-01.txt'),
+    label_list='./data/labels.txt'),v) for k,v in [
+('data/MOT20/train/MOT20-01/manifest.txt','MOT20-01.txt'),
                             ('data/MOT20/train/MOT20-02/manifest.txt','MOT20-02.txt'),
                             ('data/MOT20/train/MOT20-03/manifest.txt','MOT20-03.txt'),
-                            ('data/MOT20/train/MOT20-05/manifest.txt','MOT20-05.txt'),
+    ('data/MOT20/train/MOT20-05/manifest.txt', 'MOT20-05.txt'),
+
                             ] )
 for ds,txt in loop_gen:
     paddle.disable_static()
@@ -71,7 +73,7 @@ for ds,txt in loop_gen:
                 cv2.rectangle(im, (x, y), (x + w, y + h), (0, 255, 0), 4)
                 cv2.putText(im, '{:d} {:d}'.format(track, track),
                             (x, y), font, 0.5, (255, 0, 0), thickness=2)
-            evaluator.write_target(track,x,y,w,h,confidence[0])
+            evaluator.write_target(track,left=x,top=y,width=w,height=h,conf=1)#int(confidence[0]))
         if INTERACTIVE:
             cv2.imshow('result', im)
             cv2.waitKey(0)
