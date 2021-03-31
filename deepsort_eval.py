@@ -13,8 +13,8 @@ import os
 
 import paddlex as pdx
 from paddlex.det import transforms
-INTERACTIVE=False
-WRITE_CSV=True
+INTERACTIVE=True
+WRITE_CSV=False
 USE_YOLO=False
 if USE_YOLO:
     eval_transforms = transforms.Compose([
