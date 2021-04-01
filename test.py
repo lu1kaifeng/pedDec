@@ -12,7 +12,7 @@ base = './data/'
 import os
 import csv
 bboxes = {1:[]}
-with open('MOT20-01.txt', newline='') as csvfile:
+with open('MOT20-02.txt', newline='') as csvfile:
     reader = csv.reader(csvfile)
     for row in reader:
         if int(row[0]) not in bboxes:
@@ -41,7 +41,7 @@ loop_gen = ( ( pdx.datasets.VOCDetection(
     file_list=k,
     transforms=eval_transforms,
     label_list='./data/labels.txt'),v) for k,v in [
-('data/MOT20/train/MOT20-01/manifest.txt','MOT20-01.txt'),
+('data/MOT20/train/MOT20-02/manifest.txt','MOT20-02.txt'),
                             ('data/MOT20/train/MOT20-02/manifest.txt','MOT20-02.txt'),
                             ('data/MOT20/train/MOT20-03/manifest.txt','MOT20-03.txt'),
     ('data/MOT20/train/MOT20-05/manifest.txt', 'MOT20-05.txt')
