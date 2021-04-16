@@ -37,4 +37,4 @@ class CsvEvalWriter:
                                               'z'])
             csv_writer.writerows(self.rows)
         self.rows = []
-        self.frame= 1
+        self.frame = 1

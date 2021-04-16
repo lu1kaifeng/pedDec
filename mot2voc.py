@@ -217,7 +217,7 @@ def main():
             bar.update(count)
             format_name = folder_id + img
             fp_test.writelines(format_name[:-4] + '\n')
-            list_txt.writelines(format_name[:-4] + '\n')# 将生成的新的文件名写入train_all.txt，用于后续数据集拆分
+            list_txt.writelines(format_name[:-4] + '\n')  # 将生成的新的文件名写入train_all.txt，用于后续数据集拆分
             shutil.copy(img2 + img, JPEGImages + '/' + format_name)  # 将文件移动到指定文件夹并重新命名
         bar.finish()
         list_txt.close()

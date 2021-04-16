@@ -10,7 +10,6 @@ model = torch.jit.load(model_path)
 net = Net(reid=True)
 net.set_state_dict(model.state_dict())
 
-from paddle.jit import TracedLayer
 import paddle.vision as torchvision
 import os
 
@@ -27,11 +26,11 @@ trainloader = DataLoader(
     batch_size=1, shuffle=True
 )
 for ip in trainloader:
-    #out_dygraph, static_layer = TracedLayer.trace(net, inputs=np.moveaxis(ip[0], (3), (1)))
+    # out_dygraph, static_layer = TracedLayer.trace(net, inputs=np.moveaxis(ip[0], (3), (1)))
     input_spec = torch.static.InputSpec(shape=[1, 3, 128, 64], dtype='float32')
     net = torch.jit.to_static(net, input_spec=[input_spec])
     net(np.moveaxis(ip[0], (3), (1)))
-    torch.jit.save(model, './checkpoint_static/net',input_spec=[input_spec])
-    #print(static_layer(inputs=np.moveaxis(ip[0], (3), (1))))
-    #static_layer.save_inference_model('./checkpoint_static/net', feed=[0], fetch=[0])
+    torch.jit.save(model, './checkpoint_static/net', input_spec=[input_spec])
+    # print(static_layer(inputs=np.moveaxis(ip[0], (3), (1))))
+    # static_layer.save_inference_model('./checkpoint_static/net', feed=[0], fetch=[0])
     break

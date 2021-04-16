@@ -1,5 +1,6 @@
 import codecs
 
+
 def gennerate_gt(gt, Annotation, frame, filename, width, height):
     gt_lines = gt
 
@@ -47,17 +48,19 @@ def gennerate_gt(gt, Annotation, frame, filename, width, height):
             xml.write('\t</object>\n')
         xml.write('</annotation>')
 
+
 import os
+
 folder = 'data/MOT20/train/MOT20-05/'
 imgs = []
-fp_gt = open(folder+'gt/gt.txt')
+fp_gt = open(folder + 'gt/gt.txt')
 gt_lines = fp_gt.readlines()
 entries = []
-for (dirpath, dirnames, filenames) in os.walk(folder+'img1'):
+for (dirpath, dirnames, filenames) in os.walk(folder + 'img1'):
     imgs.extend(filenames)
 for i in imgs:
-    gennerate_gt(gt_lines,folder+'/ann/',int(i[:-4]),i[:-4],1654,1080)
-    entries.append(folder+'img1/'+i+' '+folder+'ann/' + i[:-4] + '.xml\n')
+    gennerate_gt(gt_lines, folder + '/ann/', int(i[:-4]), i[:-4], 1654, 1080)
+    entries.append(folder + 'img1/' + i + ' ' + folder + 'ann/' + i[:-4] + '.xml\n')
 
-with open(folder+'manifest.txt','w') as f:
+with open(folder + 'manifest.txt', 'w') as f:
     f.writelines(entries)
