@@ -49,7 +49,7 @@ def make_layers(c_in, c_out, repeat_times, is_downsample=False):
 
 
 class Net(nn.Layer):
-    def __init__(self, num_classes=751, reid=False):
+    def __init__(self, num_classes=751):
         super(Net, self).__init__()
         # 3 128 64
         self.conv = nn.Sequential(
@@ -71,8 +71,7 @@ class Net(nn.Layer):
         self.layer4 = make_layers(256, 512, 2, True)
         # 256 8 4
         self.avgpool = nn.AvgPool2D((8, 4), 1)
-        # 256 1 1 
-        self.reid = reid
+        # 256 1 1
         self.classifier = nn.Sequential(
             nn.Linear(512, 256),
             nn.BatchNorm1D(256),
@@ -90,11 +89,7 @@ class Net(nn.Layer):
         x = self.avgpool(x)
         x = reshape(x, (x.shape[0], -1))  # x.view(x.size(0), -1)
         # B x 128
-        if self.reid:
-            x = div(x, x.norm(p=2, axis=1, keepdim=True))
-            return x
-        # classifier
-        x = self.classifier(x)
+        x = div(x, x.norm(p=2, axis=1, keepdim=True))
         return x
 
 

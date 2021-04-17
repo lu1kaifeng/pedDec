@@ -8,15 +8,18 @@ import paddle.vision as torchvision
 from paddle.fluid.reader import DataLoader
 from paddle.optimizer.lr import StepDecay
 from paddle.static import InputSpec
-
-from deep_sort.deepaddle.dataset import ReIDDataset
-from deep_sort.deepaddle.model import Net
+from paddle.vision.models import ResNet
+from paddle.vision.models.resnet import BottleneckBlock
+import paddle.fluid as fluid
+from deep_sort.deepmetric.dataset import ReIDDataset
+from deep_sort.deepmetric.model import Net
+from deep_sort.deepmetric.loss import ArcMarginLoss
 
 parser = argparse.ArgumentParser(description="Train on market1501")
 parser.add_argument("--data-dir", default='./data/archive/Market-1501-v15.09.15', type=str)
 parser.add_argument("--no-cuda", action="store_true")
 parser.add_argument("--gpu-id", default=0, type=int)
-parser.add_argument("--lr", default=0.1, type=float)
+parser.add_argument("--lr", default=0.01, type=float)
 parser.add_argument("--interval", '-i', default=20, type=int)
 parser.add_argument('--resume', '-r', action='store_true')
 args = parser.parse_args()
@@ -51,6 +54,7 @@ num_classes = max(len(trainloader.dataset.classes), len(testloader.dataset.class
 
 # net definition
 start_epoch = 0
+#net = ResNet(depth=18,num_classes=-1,block=BottleneckBlock)
 net = Net(num_classes=num_classes)
 if args.resume:
     assert os.path.isfile("./checkpoint/ckpt.t7"), "Error: no checkpoint file found!"
@@ -63,10 +67,10 @@ if args.resume:
     start_epoch = checkpoint['epoch']
 
 # loss and optimizer
-criterion = torch.nn.CrossEntropyLoss()
-
+#criterion = torch.nn.CrossEntropyLoss()
+criterion = ArcMarginLoss(class_dim=num_classes)
 sch = StepDecay(learning_rate=args.lr, step_size=20, verbose=1, gamma=0.100)
-optimizer = torch.optimizer.SGD(parameters=net.parameters(), learning_rate=sch, weight_decay=5e-4)
+optimizer = torch.optimizer.Momentum(parameters=net.parameters(), learning_rate=sch,momentum=0.9, weight_decay=5e-4)
 best_acc = 0.
 metric = torch.metric.Accuracy()
 
@@ -83,11 +87,9 @@ def train(epoch):
     interval = args.interval
     start = time.time()
     for idx, (inputs, labels) in enumerate(trainloader):
-        # forward
-        inputs, labels = inputs, labels
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
 
+        outputs = net(inputs)
+        loss,outputs = criterion(outputs, labels)
         # backward
         optimizer.clear_grad()  # zero_grad()
         loss.backward()
@@ -96,8 +98,8 @@ def train(epoch):
         metric.update(cc)
         res = metric.accumulate()
         # accumurating
-        training_loss += loss.numpy().item()
-        train_loss += loss.numpy().item()
+        training_loss += loss.mean().numpy().item()
+        train_loss += loss.mean().numpy().item()
         correct += 0  # fluid.layers.equal(outputs.max(axis=1)[1],torch.cast(labels,'float32')).sum().numpy().item()
         total += 1  # labels.size(0)
 
@@ -125,11 +127,12 @@ def test(epoch):
     for idx, (inputs, labels) in enumerate(testloader):
         inputs, labels = inputs, labels
         outputs = net(inputs)
-        loss = criterion(outputs, labels)
+        loss,outputs = criterion(outputs, labels)
+
         cc = metric.compute(outputs, labels)
         metric.update(cc)
         res = metric.accumulate()
-        test_loss += loss.numpy().item()
+        test_loss += loss.mean().numpy().item()
         correct += 0  # outputs.max(dim=1)[1].eq(labels).sum().numpy().item()
         total += 1  # labels.size(0)
 
