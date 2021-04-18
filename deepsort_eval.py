@@ -12,7 +12,7 @@ base = './data/'
 import paddlex as pdx
 from paddlex.det import transforms
 
-INTERACTIVE = False
+INTERACTIVE = True
 WRITE_CSV = True
 USE_YOLO = False
 if USE_YOLO:
@@ -43,7 +43,8 @@ loop_gen = ((pdx.datasets.VOCDetection(
 ])
 for ds, txt in loop_gen:
     # paddle.disable_static()
-    sort = DeepSort('models/deep_sort/checkpoint_static/net', n_init=2)
+    #sort = DeepSort('models/deep_sort/checkpoint_static/net', n_init=2)
+    sort = DeepSort('checkpoint/net', n_init=2)
     # paddle.enable_static()
     for i in tqdm(ds.file_list):
         image_name = i[0]

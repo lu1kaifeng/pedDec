@@ -77,7 +77,6 @@ metric = torch.metric.Accuracy()
 
 # train function for each epoch
 def train(epoch):
-    metric.reset()
     print("\nEpoch : %d" % (epoch + 1))
     net.train()
     training_loss = 0.
@@ -87,7 +86,7 @@ def train(epoch):
     interval = args.interval
     start = time.time()
     for idx, (inputs, labels) in enumerate(trainloader):
-
+        metric.reset()
         outputs = net(inputs)
         loss,outputs = criterion(outputs, labels)
         # backward

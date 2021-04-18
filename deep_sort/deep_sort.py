@@ -1,7 +1,7 @@
 import numpy as np
 import paddle
 
-from .deepaddle.jit_feature_extractor import Extractor
+from .deepmetric.jit_feature_extractor import Extractor
 from .sort.detection import Detection
 from .sort.nn_matching import NearestNeighborDistanceMetric
 from .sort.preprocessing import non_max_suppression
