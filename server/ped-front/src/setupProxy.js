@@ -2,10 +2,11 @@ const { createProxyMiddleware } = require('http-proxy-middleware');
 var cors = require('cors')
 module.exports = function(app) {
   app.use(
-    '/api',
+    ['/socket.io','/sockjs-node'],
     createProxyMiddleware({
-      target: 'http://localhost:8000',
+      target: 'http://localhost:5000',
       changeOrigin: true,
+      ws:true
     })
   );
 
