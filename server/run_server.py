@@ -7,8 +7,13 @@ from server.config import faster_rcnn
 i = Inference(config=faster_rcnn)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app)
-i.run_inference(lambda x:socketio.emit('frame',x))
+socketio = SocketIO(app, cors_allowed_origins='*')
+
+@app.before_first_request
+def run_infer():
+    print('straming...')
+    i.run_inference(lambda x: socketio.emit('frame', x),lambda x: socketio.emit('track', x))
+
+
 if __name__ == '__main__':
     socketio.run(app)
